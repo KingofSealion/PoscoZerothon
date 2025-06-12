@@ -1,0 +1,33 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "http://127.0.0.1:5001/run-all",
+        "allowUnauthorizedCerts": true,
+        "options": {}
+      },
+      "id": "b59682fb-49f1-4b3c-8716-2cfdd35ee742",
+      "name": "Process Market Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        240,
+        20
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f514c2f5-0e5b-4863-9be9-78a8842a0e14",
+  "meta": {
+    "instanceId": "0bd39ee1b932f30d204cc796241687a402937da2950e7eb76569a08e00a9465d"
+  },
+  "id": "wM3b1zpC6oZ2m1DS",
+  "tags": []
+}
