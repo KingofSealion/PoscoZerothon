@@ -1,0 +1,582 @@
+{
+  "name": "zerothon",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 5
+            }
+          ]
+        }
+      },
+      "id": "d79f39dd-90a0-43bd-b1b0-db2ceb99711a",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        60,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const toDate = new Date();\nconst fromDate = new Date();\n\n// 시작일(365일 전) 설정\nfromDate.setDate(toDate.getDate() - 12);\n\n// GNews API가 요구하는 형식(밀리초 없음)으로 변환하는 함수\n// 예: '2025-06-11T22:22:50.123Z' -> '2025-06-11T22:22:50Z'\nconst formatForGNews = (date) => {\n  return date.toISOString().slice(0, 19) + 'Z';\n};\n\nreturn [{\n    json: {\n        from: formatForGNews(fromDate),\n        to: formatForGNews(toDate)\n    }\n}];"
+      },
+      "id": "01334682-e6b0-42e9-a88d-6cec6133bc9b",
+      "name": "from to date",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        280,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  { json: { commodity: '\"WTI\"' } },\n  { json: { commodity: '\"Corn\"' } },\n  { json: { commodity: '\"Wheat\"' } },\n  { json: { commodity: '\"Copper\"' } },\n  { json: { commodity: '\"Gold\"' } },\n  { json: { commodity: '\"Wheat\"' } }\n];"
+      },
+      "id": "c2bc12e7-6766-4f14-af7c-f663250aca50",
+      "name": "search keywords",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://gnews.io/api/v4/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $json.commodity }}"
+            },
+            {
+              "name": "from",
+              "value": "={{ $('from to date').item.json.from }}"
+            },
+            {
+              "name": "to",
+              "value": "={{ $('from to date').item.json.to }}"
+            },
+            {
+              "name": "pageSize",
+              "value": "1"
+            },
+            {
+              "name": "token",
+              "value": "befcf4b12b49841194604b731f5a0699"
+            },
+            {
+              "name": "language",
+              "value": "en"
+            },
+            {
+              "name": "country",
+              "value": "=us"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1871540a-ec10-4439-9d9b-4dab6f216321",
+      "name": "HTTP Request - GNews",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        720,
+        80
+      ],
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "mode": "list",
+          "value": "raw_news"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "commodity": "={{ $json.commodity }}",
+            "title": "={{ $json.title }}",
+            "content": "={{ $json.content }}",
+            "url": "={{ $json.url }}",
+            "published_time": "={{ $json.publishedAt }}",
+            "source": "={{ $json.source }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "url",
+              "displayName": "url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "published_time",
+              "displayName": "published_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "collected_time",
+              "displayName": "collected_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "commodity",
+              "displayName": "commodity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "analysis_status",
+              "displayName": "analysis_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "full_content",
+              "displayName": "full_content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false,
+          "conflictHandling": {
+            "action": "ignore"
+          }
+        },
+        "options": {}
+      },
+      "id": "587149a9-9f4d-46df-9572-807afcc956e1",
+      "name": "Postgres",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1160,
+        80
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "i8ylrzZFAhQLXugz",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().flatMap((item, idx) => {\n  const rawCommodity = $items(\"search keywords\")[idx].json.commodity;\n  const commodity    = rawCommodity.replace(/\\\"/g, \"\");\n  const articles     = item.json.articles || [];\n  return articles.map(a => ({\n    json: {\n      commodity,\n      title:       a.title,\n      description: a.description,\n      content:     a.content,\n      url:         a.url,\n      image:       a.image,\n      publishedAt: a.publishedAt,\n      source:      a.source?.name || \"\"\n    }\n  }));\n});\n"
+      },
+      "id": "c1566b3b-fcbc-463c-a9fc-d842312ee6cc",
+      "name": "Map Commodity1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        940,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "http://127.0.0.1:5001/run-all",
+        "allowUnauthorizedCerts": true,
+        "options": {}
+      },
+      "id": "ad007c63-a0f0-4ebe-9161-3c223e4aec72",
+      "name": "Process Market Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1380,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tradingview",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        60,
+        340
+      ],
+      "id": "9132a4a2-bf7f-4b01-99d6-6e5ae96ff31a",
+      "name": "Webhook",
+      "webhookId": "eab08933-28e2-4fad-982a-afc476e2064e"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. 티커를 우리가 원하는 품목명으로 변환하기 위한 규칙입니다.\nconst tickerMap = {\n  'CL1!': 'WTI',\n  'GC1!': 'Gold',\n  'HG1!': 'Copper',\n  'ZC1!': 'Corn',\n  'ZW1!': 'Wheat'\n};\n\n// 이전 Webhook 노드로부터 받은 데이터 항목들을 가져옵니다.\nconst items = $items(\"Webhook\");\nconst newItems = []; // 가공된 결과를 담을 새로운 배열\n\nfor (const item of items) {\n  // *** 여기가 최종 수정된 부분입니다! ***\n  // Webhook으로 받은 실제 데이터는 item.json.body에 들어있습니다.\n  const receivedData = item.json.body;\n\n  // 2. 티커명을 우리가 원하는 품목명으로 변환합니다.\n  const ticker = receivedData.ticker;\n  const commodityName = tickerMap[ticker] || ticker;\n\n  // 3. closing_price를 텍스트에서 숫자로 변환합니다.\n  const closingPrice = parseFloat(receivedData.closing_price);\n\n  // 4. 날짜(ISO 8601 문자열)를 'YYYY-MM-DD' 형식으로 변환합니다.\n  const dateObject = new Date(receivedData.date);\n  const formattedDate = dateObject.toISOString().split('T')[0];\n\n  // 5. 가공된 최종 데이터를 새로운 객체로 만듭니다.\n  newItems.push({\n    json: {\n      commodity: commodityName,\n      closing_price: closingPrice,\n      date: formattedDate\n    }\n  });\n}\n\n// 다음 노드에서 사용할 수 있도록 가공된 결과물들을 반환합니다.\nreturn newItems;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        280,
+        340
+      ],
+      "id": "7274d012-efc4-4f7a-ac0f-98fb2c98b41d",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "name"
+        },
+        "table": {
+          "__rl": true,
+          "value": "price_history",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date": "={{ $json.date }}",
+            "closing_price": "={{ $json.closing_price }}",
+            "commodity": "={{ $json.commodity }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "commodity",
+              "displayName": "commodity",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "closing_price",
+              "displayName": "closing_price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        500,
+        340
+      ],
+      "id": "129395e8-fcbe-412e-a7fd-c384ce68e93d",
+      "name": "Postgres1",
+      "credentials": {
+        "postgres": {
+          "id": "i8ylrzZFAhQLXugz",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "=[오늘의 시황 브리핑] {{ new Date().toLocaleDateString('ko-KR') }} - 시장 심리 분석",
+        "message": "=<!DOCTYPE html>\n<html lang=\"ko\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n<title>오늘의 시장 심리 브리핑</title>\n<style>\n    body { font-family: 'Malgun Gothic', '맑은 고딕', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; }\n    .container { max-width: 800px; margin: 20px auto; background-color: #ffffff; border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }\n    .header { background-color: #343a40; color: #ffffff; padding: 25px; text-align: center; }\n    .header h1 { margin: 0; font-size: 26px; }\n    .header p { margin: 5px 0 0; font-size: 14px; opacity: 0.9; }\n    .content { padding: 30px; }\n    .commodity-section { margin-bottom: 30px; border-bottom: 1px solid #e9ecef; padding-bottom: 20px; }\n    .commodity-section:last-child { border-bottom: none; }\n    .commodity-title { font-size: 22px; font-weight: bold; margin-bottom: 15px; color: #212529; }\n    .summary-box { display: flex; align-items: center; background-color: #f1f3f5; border-radius: 8px; padding: 20px; margin-bottom: 20px; }\n    .score-circle {\n        width: 90px;\n        height: 90px;\n        border-radius: 90px; /* 원형을 위해 50% 대신 고정값 사용 */\n        font-size: 30px;\n        font-weight: bold;\n        color: #ffffff;\n        text-align: center;\n        line-height: 90px; /* 수직 중앙 정렬 */\n        vertical-align: middle;\n    }\n    .summary-text { margin-left: 20px; }\n    .summary-text p { margin: 0 0 8px; }\n    .summary-text .reasoning { font-size: 16px; color: #343a40; line-height: 1.5; }\n    .summary-text .keywords { font-size: 13px; color: #868e96; }\n    .news-list h4 { font-size: 16px; color: #495057; border-left: 3px solid #0d6efd; padding-left: 10px; margin-bottom: 15px; }\n    .news-item { margin-bottom: 12px; }\n    .news-item a { color: #0d6efd; text-decoration: none; font-weight: 500; font-size: 15px; }\n    .news-item a:hover { text-decoration: underline; }\n    .news-item .score { font-size: 13px; color: #6c757d; margin-left: 8px; font-weight: bold; }\n    .footer { background-color: #f8f9fa; text-align: center; padding: 20px; font-size: 12px; color: #6c757d; }\n</style>\n</head>\n<body style=\"margin:0; padding:0;\">\n<div class=\"container\">\n    <div class=\"header\">\n        <h1>오늘의 시장 심리 브리핑</h1>\n        <p>{{ new Date().toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' }) }} 기준</p>\n    </div>\n    <div class=\"content\">\n        <div class=\"commodity-section\">\n            <h3 class=\"commodity-title\">🌽 CBOT 옥수수</h3>\n            <div class=\"summary-box\">\n                <div style=\"flex-shrink: 0;\">\n                    <div class=\"score-circle\" style=\"background-color: #28a745;\">78.5</div>\n                    </div>\n                <div class=\"summary-text\">\n                    <p class=\"reasoning\"><strong>종합 의견:</strong> 주요 수입국의 대규모 구매 소식과 더불어, 주요 생산지의 건조한 날씨 예보가 공급 우려를 자극하며 시장 심리가 긍정적으로 형성되었습니다.</p>\n                    <p class=\"keywords\"><strong>주요 키워드:</strong> 수출 수요, 건조 기상, 공급 우려, 강세, USDA</p>\n                </div>\n            </div>\n            <div class=\"news-list\">\n                <h4>주요 뉴스 원문</h4>\n                <div class=\"news-item\">\n                    <a href=\"#\" target=\"_blank\">중국, 미국산 옥수수 100만 톤 추가 구매 계약 체결</a>\n                    <span class=\"score\">(개별 점수: 85)</span>\n                </div>\n                 <div class=\"news-item\">\n                    <a href=\"#\" target=\"_blank\">미국 콘 벨트, 향후 2주간 강수량 평년 이하 예보</a>\n                    <span class=\"score\">(개별 점수: 75)</span>\n                </div>\n            </div>\n        </div>\n        <div class=\"commodity-section\">\n            <h3 class=\"commodity-title\">🌾 CBOT 밀</h3>\n            <div class=\"summary-box\">\n                <div style=\"flex-shrink: 0;\">\n                    <div class=\"score-circle\" style=\"background-color: #ffc107; color:#212529;\">65.2</div>\n                    </div>\n                <div class=\"summary-text\">\n                    <p class=\"reasoning\"><strong>종합 의견:</strong> 흑해 지역의 지정학적 긴장이 완화될 조짐을 보이며 수출 재개 기대감이 커졌으나, 달러 강세가 상승폭을 제한했습니다.</p>\n                    <p class=\"keywords\"><strong>주요 키워드:</strong> 흑해, 수출 재개, 달러 강세, 지정학적 리스크, 보합</p>\n                </div>\n            </div>\n            <div class=\"news-list\">\n                <h4>주요 뉴스 원문</h4>\n                <div class=\"news-item\">\n                    <a href=\"#\" target=\"_blank\">러시아-우크라이나, 밀 수출 관련 협상 재개 소식</a>\n                    <span class=\"score\">(개별 점수: 70)</span>\n                </div>\n                <div class=\"news-item\">\n                    <a href=\"#\" target=\"_blank\">주요 6개국 통화 대비 달러 인덱스, 강세 전환</a>\n                    <span class=\"score\">(개별 점수: 45)</span>\n                </div>\n            </div>\n        </div>\n        <div class=\"commodity-section\">\n            <h3 class=\"commodity-title\">🛢️ WTI 원유</h3>\n            <div class=\"summary-box\">\n                <div style=\"flex-shrink: 0;\">\n                    <div class=\"score-circle\" style=\"background-color: #28a745;\">72.1</div>\n                    </div>\n                <div class=\"summary-text\">\n                    <p class=\"reasoning\"><strong>종합 의견:</strong> 예상보다 큰 폭의 미국 원유 재고 감소 소식이 시장의 공급 과잉 우려를 완화시키며 긍정적인 투자 심리를 이끌었습니다.</p>\n                    <p class=\"keywords\"><strong>주요 키워드:</strong> 원유 재고 감소, EIA, 공급 우려 완화, 수요 기대</p>\n                </div>\n            </div>\n            <div class=\"news-list\">\n                <h4>주요 뉴스 원문</h4>\n                <div class=\"news-item\">\n                    <a href=\"#\" target=\"_blank\">미 에너지정보청(EIA), 주간 원유 재고 예상치보다 큰 폭 감소 발표</a>\n                    <span class=\"score\">(개별 점수: 80)</span>\n                </div>\n                <div class=\"news-item\">\n                    <a href=\"#\" target=\"_blank\">미국 여름 드라이빙 시즌 진입에 따른 휘발유 수요 증가</a>\n                    <span class=\"score\">(개별 점수: 70)</span>\n                </div>\n            </div>\n        </div>\n    </div>\n    <div class=\"footer\">\n        <p>본 정보는 AI가 분석한 결과이며, 투자 참고 자료로만 활용하시기 바랍니다.</p>\n        <p>알림을 원치 않으시면 My Page에서 설정을 변경해주세요.</p>\n    </div>\n</div>\n</body>\n</html>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        500,
+        620
+      ],
+      "id": "6115c34e-dd54-40de-b485-32ded32b4748",
+      "name": "Gmail1",
+      "webhookId": "0d56efe8-aace-419a-b6cd-e9651bf9f9cb",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "0zVDsJroZkOZTQSp",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 5
+            }
+          ]
+        }
+      },
+      "id": "856fcbac-8ae6-44b0-b478-8517c5c88fe5",
+      "name": "Schedule Trigger2",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        60,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n    email,\n    array_to_json(commodities) as commodities,\n    alert_cycle\nFROM\n    alert_settings;",
+        "options": {}
+      },
+      "id": "57bc4323-84a3-4886-855a-73035947ea82",
+      "name": "Postgres4",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        280,
+        600
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "i8ylrzZFAhQLXugz",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "from to date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "from to date": {
+      "main": [
+        [
+          {
+            "node": "search keywords",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "search keywords": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - GNews",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - GNews": {
+      "main": [
+        [
+          {
+            "node": "Map Commodity1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map Commodity1": {
+      "main": [
+        [
+          {
+            "node": "Postgres",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Postgres1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres": {
+      "main": [
+        [
+          {
+            "node": "Process Market Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Market Data": {
+      "main": [
+        []
+      ]
+    },
+    "Schedule Trigger2": {
+      "main": [
+        [
+          {
+            "node": "Postgres4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres4": {
+      "main": [
+        [
+          {
+            "node": "Gmail1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a7adab43-666d-4523-a9c4-21b126c9bd8d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0bd39ee1b932f30d204cc796241687a402937da2950e7eb76569a08e00a9465d"
+  },
+  "id": "mz8HrOYwySghRjKh",
+  "tags": []
+}
